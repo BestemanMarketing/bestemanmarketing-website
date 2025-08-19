@@ -37,6 +37,10 @@ import {
   type Language,
 } from "@/lib/language-utils"
 
+if (typeof window === 'undefined') {
+  global.window = {} as any;
+}
+
 export default function BestemanMarketingWebsite() {
   const [language, setLanguage] = useState<Language>("en")
   const [waitlistEmail, setWaitlistEmail] = useState("")
