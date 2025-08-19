@@ -30,11 +30,15 @@ export function setStoredLanguage(language: Language): void {
 export function getLanguageFromUrl(): Language | null {
   if (typeof window === "undefined") return null
 
-  const urlParams = new URLSearchParams(window.location.search)
-  const lang = urlParams.get("lang")
+  try {
+    const urlParams = new URLSearchParams(window.location.search)
+    const lang = urlParams.get("lang")
 
-  if (lang === "en" || lang === "nl") {
-    return lang
+    if (lang === "en" || lang === "nl") {
+      return lang
+    }
+  } catch (error) {
+    console.warn("Failed to get language from URL:", error)
   }
 
   return null
@@ -43,15 +47,32 @@ export function getLanguageFromUrl(): Language | null {
 export function updateUrlWithLanguage(language: Language): void {
   if (typeof window === "undefined") return
 
-  const url = new URL(window.location.href)
-  url.searchParams.set("lang", language)
+  try {
+    const url = new URL(window.location.href)
+    url.searchParams.set("lang", language)
 
-  // Update URL without triggering a page reload
-  window.history.replaceState({}, "", url.toString())
+    // Update URL without triggering a page reload
+    window.history.replaceState({}, "", url.toString())
+  } catch (error) {
+    console.warn("Failed to update URL with language:", error)
+  }
 }
 
 export function createLanguageAwareLink(href: string, language: Language): string {
-  const url = new URL(href, window.location.origin)
-  url.searchParams.set("lang", language)
-  return url.pathname + url.search
+  // During server-side rendering, just return the href as-is
+  if (typeof window === "undefined") {
+    return href
+  }
+
+  try {
+    // Create URL with current origin
+    const url = new URL(href, window.location.origin)
+    url.searchParams.set("lang", language)
+    return url.pathname + url.search
+  } catch (error) {
+    console.warn("Failed to create language-aware link:", error)
+    // Fallback: just add the language parameter
+    const separator = href.includes('?') ? '&' : '?'
+    return `${href}${separator}lang=${language}`
+  }
 }
